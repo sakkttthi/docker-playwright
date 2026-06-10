@@ -1,0 +1,70 @@
+name: Playwright Tests
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  playwright-local:
+    name: Run Playwright (Local Runner)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers & OS Dependencies
+        run: npx playwright install --with-deps
+
+      - name: Run Playwright tests
+        run: npx playwright test
+
+      - name: Upload Playwright HTML Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-local
+          path: playwright-report/
+          retention-days: 30
+
+  playwright-docker:
+    name: Run Playwright (Docker Container)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker Image
+        run: docker build -t playwright-tests .
+
+      - name: Run Playwright Tests in Docker
+        run: docker run --rm playwright-tests
+
+      - name: Copy Playwright Test Results from Docker (Optional)
+        if: always()
+        run: |
+          # Create a container to extract the test results if they exist
+          docker create --name test-container playwright-tests
+          docker cp test-container:/app/playwright-report ./playwright-report-docker || true
+          docker cp test-container:/app/test-results ./test-results-docker || true
+          docker rm test-container
+
+      - name: Upload Docker Playwright HTML Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-docker
+          path: playwright-report-docker/
+          retention-days: 30
