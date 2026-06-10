@@ -17,16 +17,16 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build Docker Image
-        run: docker build -t playwright-tests .
+        run: docker build -t my-playwright-app .
 
       - name: Run Playwright Tests in Docker
-        run: docker run --rm playwright-tests
+        run: docker run --rm my-playwright-app
 
       - name: Copy Playwright Test Results from Docker (Optional)
         if: always()
         run: |
           # Create a container to extract the test results if they exist
-          docker create --name test-container playwright-tests
+          docker create --name test-container my-playwright-app
           docker cp test-container:/app/playwright-report ./playwright-report-docker || true
           docker cp test-container:/app/test-results ./test-results-docker || true
           docker rm test-container
