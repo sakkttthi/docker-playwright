@@ -2,18 +2,42 @@ name: Playwright Tests
 
 on:
   workflow_dispatch:
-
+    inputs:
+      project:
+        description: 'Choose a Playwright project/browser to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - chromium
+          - firefox
+          - webkit
 
 jobs:
+  setup:
+    name: Determine Target Projects
+    runs-on: ubuntu-latest
+    outputs:
+      projects: ${{ steps.select.outputs.projects }}
+    steps:
+      - id: select
+        run: |
+          if [ "${{ github.event.inputs.project }}" = "all" ]; then
+            echo "projects=[\"chromium\", \"firefox\", \"webkit\"]" >> $GITHUB_OUTPUT
+          else
+            echo "projects=[\"${{ github.event.inputs.project }}\"]" >> $GITHUB_OUTPUT
+          fi
 
   playwright-docker:
     name: Run Playwright (Docker - ${{ matrix.project }})
+    needs: setup
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        project: [chromium, firefox, webkit]
+        project: ${{ fromJson(needs.setup.outputs.projects) }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
