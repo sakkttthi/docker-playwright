@@ -20,21 +20,16 @@ jobs:
         run: docker build -t my-playwright-app .
 
       - name: Run Playwright Tests in Docker
-        run: docker run --rm my-playwright-app
-
-      - name: Copy Playwright Test Results from Docker (Optional)
-        if: always()
         run: |
-          # Create a container to extract the test results if they exist
-          docker create --name test-container my-playwright-app
-          docker cp test-container:/app/playwright-report ./playwright-report-docker || true
-          docker cp test-container:/app/test-results ./test-results-docker || true
-          docker rm test-container
+          mkdir -p playwright-report
+          docker run --rm \
+            -v ${{ github.workspace }}/playwright-report:/app/playwright-report \
+            my-playwright-app
 
       - name: Upload Docker Playwright HTML Report
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: playwright-report-docker
-          path: playwright-report-docker/
+          name: playwright-report
+          path: playwright-report/
           retention-days: 30
