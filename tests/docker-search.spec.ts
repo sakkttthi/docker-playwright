@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
-test('should perform a Wikipedia search and validate the results', { tag: '@playwright' }, async ({ page }) => {
-  const searchQuery = 'Playwright';
+test('should perform a Wikipedia search for Docker and validate the results', { tag: '@docker' }, async ({ page }) => {
+  const searchQuery = 'Docker';
 
   console.log(`Navigating to Wikipedia homepage...`);
   await page.goto('https://www.wikipedia.org/', {
@@ -26,5 +26,3 @@ test('should perform a Wikipedia search and validate the results', { tag: '@play
   console.log(`Successfully verified Wikipedia page for: "${await firstHeading.innerText()}"`);
   await page.close();
 });
-
-
